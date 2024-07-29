@@ -1,162 +1,3 @@
-Sure, here is the updated README file with a properly arranged Table of Contents based on your latest content:
-
-# Automated Deployment and Configuration with Ansible for Boilerplate Application
-
-## Overview
-This project involves setting up a new instance of the assigned boilerplate using Infrastructure as Code (IaC) with Ansible. The setup includes cloning the repository, installing dependencies, configuring PostgreSQL, setting up a messaging queue, configuring the application and Nginx, and setting up logging.
-
-## Table of Contents
-- [Automated Deployment and Configuration with Ansible for Boilerplate Application](#automated-deployment-and-configuration-with-ansible-for-boilerplate-application)
-  - [Overview](#overview)
-  - [Table of Contents](#table-of-contents)
-  - [Clone and Deploy](#clone-and-deploy)
-  - [Install Dependencies](#install-dependencies)
-  - [Setup PostgreSQL](#setup-postgresql)
-  - [Messaging Queue](#messaging-queue)
-  - [Application Configuration](#application-configuration)
-  - [Logging](#logging)
-  - [User and Directory Setup](#user-and-directory-setup)
-  - [Database and Dependencies](#database-and-dependencies)
-  - [Application and Proxy Setup](#application-and-proxy-setup)
-    - [Playbook Task](#playbook-task)
-  - [Logging Configuration](#logging-configuration)
-  - [Files](#files)
-    - [ansible.cfg](#ansiblecfg)
-    - [inventory.cfg](#inventorycfg)
-    - [Template File (nginx.conf.j2)](#template-file-nginxconfj2)
-    - [main.yaml](#mainyaml)
-    - [Ansible Playbook Script (main.yaml)](#ansible-playbook-script-mainyaml)
-    - [Summary](#summary)
-
-## Clone and Deploy
-1. Clone the DevOps branch of your boilerplate repository to a Linux server:
-   ```sh
-   git clone -b devops https://github.com/hngprojects/hng_boilerplate_python_fastapi_web.git /opt/stage_5b
-   ```
-
-   ![Cloned files Screenshot](screenshots/1-clone-repo.png)
-
-2. Deploy the boilerplate application on the server using the provided Ansible playbook.
-
-## Install Dependencies
-The playbook installs all required dependencies for the boilerplate, including Python packages and system packages.
-
-## Setup PostgreSQL
-1. Install PostgreSQL.
-2. Configure a PostgreSQL database.
-3. Save the admin user and credentials in `/var/secrets/pg_pw.txt`.
-
-![PostgreSQL Credentials Screenshot](screenshots/2-pg_pw.txt.png)
-
-## Messaging Queue
-Set up RabbitMQ as the messaging queue required for the application.
-
-## Application Configuration
-1. Ensure the application starts on port 3000.
-2. Set up Nginx to reverse proxy the application to port 80.
-
-## Logging
-Configure stderr logs to be saved in `/var/log/stage_5b/error.log` and stdout logs in `/var/log/stage_5b/out.log`. Ensure both log files are owned by the `hng` user.
-
-Output of the error.log
-
-![/var/log/stage_5b/error.log Screenshot](screenshots/3-error.log.png)
-
-Output of the out.log
-
-![/var/log/stage_5b/out.log Screenshot](screenshots/4-out.log.png)
-
-## User and Directory Setup
-1. Create a user named `hng` with sudo privileges.
-2. Clone the repository into the `/opt` directory with the name `stage_5b`
-
-```sh
-   sudo adduser hng
-   sudo usermod -aG sudo hng
-   sudo chown -R hng:hng /opt/stage_5b
-```
-
-Sudo Group User
-
-![Sudo Group User Screenshot](screenshots/5-sudo-group-user.png)
-
-stage_5b directory is Owned by HNG User
-![Directory Owner Screenshot](screenshots/6-hng-stage_5b.png)
-
-HNG Execution Permission without password 
-![User with no password execution Screenshot](screenshots/7-hng-no-password.png)
-
-## Database and Dependencies
-1. Install PostgreSQL and save the admin credentials in `/var/secrets/pg_pw.txt`.
-2. Install all application dependencies, including databases and messaging queues, and configure the environment variables or application settings accordingly.
-
-## Application and Proxy Setup
-1. Ensure the application is running on `127.0.0.1:3000` without exposing port 3000 externally.
-2. Install Nginx 1.26 and configure it to reverse proxy requests from port 80 to your application.
-
-### Playbook Task
-- The `main.py` file is configured to ensure the application runs on `127.0.0.1:3000`, making it accessible only from the local host:
-  ```yaml
-  - name: Update main.py to run on port 3000
-    replace:
-      path: "{{ local_repo_path }}/main.py"
-      regexp: 'port=7001'
-      replace: 'port={{ app_port }}'
-  ```
-- Nginx is set up to listen on port 80 and proxy requests to `127.0.0.1:3000`, ensuring that port 3000 is not exposed externally:
-  ```nginx
-  server {
-      listen 80;
-      server_name localhost;
-
-      location / {
-          proxy_pass http://127.0.0.1:3000;
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
-      }
-  }
-  ```
-
-## Logging Configuration
-1. Set up logging so that stderr logs are written to `/var/log/stage_5b/error.log` and stdout logs to `/var/log/stage_5b/out.log`.
-2. Ensure both log files are owned by the `hng` user.
-
-## Files
-
-### ansible.cfg
-```ini
-[defaults]
-remote_tmp = /tmp/.ansible-${USER}/tmp
-allow_world_readable_tmpfiles = True
-```
-
-### inventory.cfg
-```ini
-[hng]
-13.48.1.19 ansible_user=ubuntu ansible_ssh_private_key_file=/home/neyo55/Desktop/HNG/stage-5b-boilerplate/brado.pem
-```
-
-### Template File (nginx.conf.j2)
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### main.yaml
-
-```yaml
 ---
 - name: Setting up the environment for the boilerplate application 
   hosts: hng
@@ -170,15 +11,13 @@ server {
     deployment_user: "hng"
     app_port: 3000
     nginx_http_port: 80
-    pg_cred_path: "/var/secrets/pg_pw.txt"
     log_stderr_path: "/var/log/stage_5b/error.log"
     log_stdout_path: "/var/log/stage_5b/out.log"
+    pg_cred_path: "/var/secrets/pg_pw.txt"
     pg_database_name: "neyo_db"
     pg_admin_user: "neyo"
     pg_admin_password: "hng@stress"
-    rabbitmq_user: "neyo_rabbitmq"
-    rabbitmq_password: "hng@stress"
-    rabbitmq_vhost: "/myvhost"
+    
 
   tasks:
     # Check if the sudo group exists
@@ -237,9 +76,7 @@ server {
         state: touch
         owner: "{{ deployment_user }}"
         group: "{{ deployment_user }}"
-        mode:
-
- '0644'
+        mode: '0644'
       with_items:
         - "{{ log_stderr_path }}"
         - "{{ log_stdout_path }}"
@@ -487,9 +324,7 @@ server {
       become_user: postgres
       postgresql_query:
         db: "{{ pg_database_name }}"
-        query: "CREATE TABLE IF NOT EXISTS dummy_table (column1 VARCHAR(255
-
-), column2 VARCHAR(255));"
+        query: "CREATE TABLE IF NOT EXISTS dummy_table (column1 VARCHAR(255), column2 VARCHAR(255));"
 
     # Insert dummy data into the dummy table
     - name: Create dummy data in PostgreSQL database
@@ -497,94 +332,6 @@ server {
       postgresql_query:
         db: "{{ pg_database_name }}"
         query: "INSERT INTO dummy_table (column1, column2) VALUES ('dummy1', 'dummy2');"
-
-    # Install RabbitMQ
-    - name: Install RabbitMQ
-      apt:
-        name: rabbitmq-server
-        state: present
-      register: install_rabbitmq_output
-
-    - name: Append install RabbitMQ stdout to log
-      shell: |
-        echo "{{ install_rabbitmq_output.stdout }}" >> "{{ log_stdout_path }}"
-      when: install_rabbitmq_output.stdout is defined and install_rabbitmq_output.stdout != ""
-
-    - name: Append install RabbitMQ stderr to log
-      shell: |
-        echo "{{ install_rabbitmq_output.stderr }}" >> "{{ log_stderr_path }}"
-      when: install_rabbitmq_output.stderr is defined and install_rabbitmq_output.stderr != ""
-
-    - name: Ensure RabbitMQ service is running
-      service:
-        name: rabbitmq-server
-        state: started
-        enabled: yes
-      register: rabbitmq_service_output
-
-    - name: Append RabbitMQ service stdout to log
-      shell: |
-        echo "{{ rabbitmq_service_output.stdout }}" >> "{{ log_stdout_path }}"
-      when: rabbitmq_service_output.stdout is defined and rabbitmq_service_output.stdout != ""
-
-    - name: Append RabbitMQ service stderr to log
-      shell: |
-        echo "{{ rabbitmq_service_output.stderr }}" >> "{{ log_stderr_path }}"
-      when: rabbitmq_service_output.stderr is defined and rabbitmq_service_output.stderr != ""
-
-    - name: Create RabbitMQ user
-      rabbitmq_user:
-        user: "{{ rabbitmq_user }}"
-        password: "{{ rabbitmq_password }}"
-        state: present
-        tags: administrator
-      register: create_rabbitmq_user_output
-
-    - name: Append create RabbitMQ user stdout to log
-      shell: |
-        echo "{{ create_rabbitmq_user_output.stdout }}" >> "{{ log_stdout_path }}"
-      when: create_rabbitmq_user_output.stdout is defined and create_rabbitmq_user_output.stdout != ""
-
-    - name: Append create RabbitMQ user stderr to log
-      shell: |
-        echo "{{ create_rabbitmq_user_output.stderr }}" >> "{{ log_stderr_path }}"
-      when: create_rabbitmq_user_output.stderr is defined and create_rabbitmq_user_output.stderr != ""
-
-    - name: Create RabbitMQ virtual host
-      rabbitmq_vhost:
-        name: "{{ rabbitmq_vhost }}"
-        state: present
-      register: create_rabbitmq_vhost_output
-
-    - name: Append create RabbitMQ vhost stdout to log
-      shell: |
-        echo "{{ create_rabbitmq_vhost_output.stdout }}" >> "{{ log_stdout_path }}"
-      when: create_rabbitmq_vhost_output.stdout is defined and create_rabbitmq_vhost_output.stdout != ""
-
-    - name: Append create RabbitMQ vhost stderr to log
-      shell: |
-        echo "{{ create_rabbitmq_vhost_output.stderr }}" >> "{{ log_stderr_path }}"
-      when: create_rabbitmq_vhost_output.stderr is defined and create_rabbitmq_vhost_output.stderr != ""
-
-    - name: Set permissions for RabbitMQ user on vhost
-      rabbitmq_user:
-        user: "{{ rabbitmq_user }}"
-        vhost: "{{ rabbitmq_vhost }}"
-        configure_priv: ".*"
-        read_priv: ".*"
-        write_priv: ".*"
-        state: present
-      register: set_rabbitmq_permissions_output
-
-    - name: Append set RabbitMQ permissions stdout to log
-      shell: |
-        echo "{{ set_rabbitmq_permissions_output.stdout }}" >> "{{ log_stdout_path }}"
-      when: set_rabbitmq_permissions_output.stdout is defined and set_rabbitmq_permissions_output.stdout != ""
-
-    - name: Append set RabbitMQ permissions stderr to log
-      shell: |
-        echo "{{ set_rabbitmq_permissions_output.stderr }}" >> "{{ log_stderr_path }}"
-      when: set_rabbitmq_permissions_output.stderr is defined and set_rabbitmq_permissions_output.stderr != ""
 
     # Copy .env.sample to .env
     - name: Copy .env.sample to .env
@@ -624,12 +371,12 @@ server {
         regexp: '^DB_PASSWORD='
         line: "DB_PASSWORD={{ pg_admin_password }}"
 
-    # Update .env file with RabbitMQ URL
-    - name: Update .env file with RabbitMQ URL
-      lineinfile:
-        path: "{{ local_repo_path }}/.env"
-        regexp: '^RABBITMQ_URL='
-        line: "RABBITMQ_URL=amqp://{{ rabbitmq_user }}:{{ rabbitmq_password }}@localhost:5672/{{ rabbitmq_vhost }}"
+    # # Update .env file with RabbitMQ URL
+    # - name: Update .env file with RabbitMQ URL
+    #   lineinfile:
+    #     path: "{{ local_repo_path }}/.env"
+    #     regexp: '^RABBITMQ_URL='
+    #     line: "RABBITMQ_URL=amqp://{{ rabbitmq_user }}:{{ rabbitmq_password }}@localhost:5672/{{ rabbitmq_vhost }}"
 
     # Update main.py to run on port 3000
     - name: Update main.py to run on port 3000
@@ -718,79 +465,3 @@ server {
       service:
         name: nginx
         state: restarted
-```
-
-### Ansible Playbook Script (main.yaml)
-
-The playbook script is the
-
- main automation script that Ansible will execute. It contains a series of tasks that set up the environment, install necessary software, and configure the application. Here's a breakdown:
-
-1. **Environment Setup**:
-    - **Check and Create Sudo Group**: Ensures the `sudo` group exists and has proper privileges.
-    - **Create Deployment User**: Creates a new user for deploying the application with sudo privileges.
-    - **Logging Setup**: Creates directories and files for logging application output and errors.
-    - **Local Repository Setup**: Clones the application repository to the specified path.
-
-2. **Python and Virtual Environment Setup**:
-    - **Install Dependencies**: Installs necessary Python packages.
-    - **Create Virtual Environment**: Sets up a virtual environment for the application.
-    - **Install Application Dependencies**: Installs Python dependencies from `requirements.txt`.
-
-3. **Database Setup**:
-    - **Install PostgreSQL**: Installs PostgreSQL and ensures the service is running.
-    - **Create Database and User**: Sets up the database and admin user, saving credentials securely.
-
-4. **RabbitMQ Setup**:
-    - **Install RabbitMQ**: Installs RabbitMQ server and ensures the service is running.
-    - **Create RabbitMQ User and VHost**: Sets up RabbitMQ user and virtual host with appropriate permissions.
-
-5. **Application Configuration**:
-    - **Copy and Update .env File**: Copies the sample environment file and updates it with database and RabbitMQ details.
-    - **Update Application Port**: Configures the application to run on the specified port.
-    - **Run the Application**: Starts the FastAPI application server.
-
-6. **Nginx Setup**:
-    - **Install Nginx**: Adds Nginx repository, installs Nginx, and removes the default site configuration.
-    - **Deploy Custom Nginx Configuration**: Copies the custom Nginx configuration and restarts the Nginx service.
-
-### Summary
-
-1. **ansible.cfg**: Configures Ansible to use specific settings for temporary files and permissions.
-2. **inventory.cfg**: Lists the target host(s) and SSH authentication details.
-3. **nginx.conf.j2**: Provides a template for Nginx configuration, setting up a reverse proxy to the application.
-4. **Playbook Script**: Automates the setup and deployment of the FastAPI application, including user creation, software installation, service configuration, and application deployment.
-
-When you run the playbook:
-
-```sh
-ansible-playbook -i inventory.cfg main.yaml
-```
-
-Or run the command like this for detailed verbosity:
-
-```sh
-ansible-playbook -i inventory.cfg main.yaml -b -vvv
-```
-
-Ansible will:
-
-1. Read the inventory file **inventory.cfg** to determine which hosts to target.
-2. Run the tasks defined in the **main.yaml** playbook on the targeted hosts.
-3. **-b**: Run the playbook in batch mode, without prompting for confirmation.
-4. **-vvv**: Increases the verbosity level of the output to the maximum level for detailed logs.
-
-The Playbook Starts Running
-![Playbook Starts Running Screenshot](screenshots/9-playbook-starts.png)
-
-The Playbook Ran Successfully
-![Playbook Ran Successfully Screenshot](screenshots/10-playbook-ends.png)
-
-Ansible will connect to the target host defined in `inventory.cfg`, execute each task in the playbook, and apply the configurations as specified. The playbook ensures that the necessary environment is set up, dependencies are installed, and the application is correctly deployed and accessible via Nginx.
-
-The API display page without exposing port 3000
-![Page Display with Nginx Screenshot](screenshots/8-page-on-web.png)
-
----
-
-This setup ensures that the boilerplate application is properly configured, deployed, and running with all necessary dependencies, databases, and services, managed and automated through Ansible.

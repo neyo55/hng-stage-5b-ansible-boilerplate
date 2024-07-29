@@ -371,13 +371,6 @@
         regexp: '^DB_PASSWORD='
         line: "DB_PASSWORD={{ pg_admin_password }}"
 
-    # # Update .env file with RabbitMQ URL
-    # - name: Update .env file with RabbitMQ URL
-    #   lineinfile:
-    #     path: "{{ local_repo_path }}/.env"
-    #     regexp: '^RABBITMQ_URL='
-    #     line: "RABBITMQ_URL=amqp://{{ rabbitmq_user }}:{{ rabbitmq_password }}@localhost:5672/{{ rabbitmq_vhost }}"
-
     # Update main.py to run on port 3000
     - name: Update main.py to run on port 3000
       replace:

@@ -1,4 +1,3 @@
-Sure, here is the updated README file with a properly arranged Table of Contents based on your latest content:
 
 # Automated Deployment and Configuration with Ansible for Boilerplate Application
 
